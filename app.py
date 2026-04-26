@@ -6,69 +6,84 @@ from sklearn.preprocessing import LabelEncoder
 st.title("🚦 AI Traffic Prediction System (Gurugram)")
 
 # ---------------------------
-# REAL LOCATIONS
+# START LOCATIONS (IFFCO + others)
 # ---------------------------
-locations = ["IFFCO Chowk", "Cyber City", "Rajiv Chowk", "Huda City Centre"]
+start_locations = [
+    "IFFCO Chowk",
+    "Cyber City",
+    "Huda City Centre",
+    "MG Road"
+]
 
-destinations = ["Rishikesh", "Delhi", "Noida", "Jaipur"]
+# DESTINATIONS
+destinations = [
+    "Rishikesh",
+    "Delhi",
+    "Noida",
+    "Jaipur"
+]
 
-# Distance mapping (approx real values)
+# ---------------------------
+# ROUTE DISTANCE (Approx Real)
+# ---------------------------
 routes = {
     ("IFFCO Chowk", "Rishikesh"): 250,
-    ("IFFCO Chowk", "Delhi"): 30,
-    ("IFFCO Chowk", "Noida"): 45,
-    ("IFFCO Chowk", "Jaipur"): 280,
-
     ("Cyber City", "Rishikesh"): 255,
-    ("Cyber City", "Delhi"): 25,
-    ("Cyber City", "Noida"): 50,
-    ("Cyber City", "Jaipur"): 285,
-
-    ("Rajiv Chowk", "Rishikesh"): 240,
-    ("Rajiv Chowk", "Delhi"): 5,
-    ("Rajiv Chowk", "Noida"): 20,
-    ("Rajiv Chowk", "Jaipur"): 270,
-
     ("Huda City Centre", "Rishikesh"): 260,
+    ("MG Road", "Rishikesh"): 245,
+
+    ("IFFCO Chowk", "Delhi"): 30,
+    ("Cyber City", "Delhi"): 25,
     ("Huda City Centre", "Delhi"): 35,
+    ("MG Road", "Delhi"): 28,
+
+    ("IFFCO Chowk", "Noida"): 45,
+    ("Cyber City", "Noida"): 50,
     ("Huda City Centre", "Noida"): 55,
-    ("Huda City Centre", "Jaipur"): 290
+    ("MG Road", "Noida"): 48,
+
+    ("IFFCO Chowk", "Jaipur"): 280,
+    ("Cyber City", "Jaipur"): 285,
+    ("Huda City Centre", "Jaipur"): 290,
+    ("MG Road", "Jaipur"): 275
 }
 
-# Alternative routes
+# ---------------------------
+# ALTERNATIVE ROUTES
+# ---------------------------
 alt_routes = {
-    ("IFFCO Chowk", "Rishikesh"): "Via Meerut Highway (NH334)",
-    ("Cyber City", "Rishikesh"): "Via NH334 & Haridwar Road",
-    ("Rajiv Chowk", "Rishikesh"): "Via Ghaziabad - Meerut Expressway",
+    ("IFFCO Chowk", "Rishikesh"): "Via Meerut Expressway",
+    ("Cyber City", "Rishikesh"): "Via NH334",
     ("Huda City Centre", "Rishikesh"): "Via NH9",
+    ("MG Road", "Rishikesh"): "Via Ghaziabad route",
 
     ("IFFCO Chowk", "Delhi"): "Via MG Road",
     ("Cyber City", "Delhi"): "Via NH48",
-    ("Rajiv Chowk", "Delhi"): "Inner city roads",
     ("Huda City Centre", "Delhi"): "Via Sohna Road",
+    ("MG Road", "Delhi"): "Inner roads",
 
     ("IFFCO Chowk", "Noida"): "Via DND Flyway",
     ("Cyber City", "Noida"): "Via NH48 + DND",
-    ("Rajiv Chowk", "Noida"): "Via Akshardham route",
     ("Huda City Centre", "Noida"): "Via NH9",
+    ("MG Road", "Noida"): "Via Akshardham route",
 
     ("IFFCO Chowk", "Jaipur"): "Via NH48 Expressway",
     ("Cyber City", "Jaipur"): "Via NH48",
-    ("Rajiv Chowk", "Jaipur"): "Via Gurgaon Expressway",
-    ("Huda City Centre", "Jaipur"): "Via Sohna Road + NH48"
+    ("Huda City Centre", "Jaipur"): "Via Sohna Road",
+    ("MG Road", "Jaipur"): "Via Gurgaon Expressway"
 }
 
 # ---------------------------
-# SAMPLE DATASET
+# DATASET
 # ---------------------------
 data = pd.DataFrame({
-    'Source': ['IFFCO Chowk','Cyber City','Rajiv Chowk','Huda City Centre'],
-    'Destination': ['Rishikesh','Delhi','Noida','Jaipur'],
+    'Source': ["IFFCO Chowk","Cyber City","Huda City Centre","MG Road"],
+    'Destination': ["Rishikesh","Delhi","Noida","Jaipur"],
     'Time': [8, 14, 18, 20],
-    'Day': ['Monday','Wednesday','Friday','Sunday'],
-    'Weather': ['Clear','Rain','Cloudy','Clear'],
-    'Distance': [250, 25, 20, 290],
-    'Traffic': ['High','Medium','High','Low']
+    'Day': ["Monday","Wednesday","Friday","Sunday"],
+    'Weather': ["Clear","Rain","Cloudy","Clear"],
+    'Distance': [250, 25, 55, 275],
+    'Traffic': ["High","Medium","High","Low"]
 })
 
 # ---------------------------
@@ -97,7 +112,7 @@ model.fit(X, y)
 # ---------------------------
 st.header("📍 Enter Route Details")
 
-source = st.selectbox("Select Source", locations)
+source = st.selectbox("Select Start Location", start_locations)
 destination = st.selectbox("Select Destination", destinations)
 
 time = st.slider("Time (Hour)", 0, 23, 8)
@@ -109,7 +124,7 @@ day = st.selectbox("Day", [
 
 weather = st.selectbox("Weather", ['Clear','Rain','Cloudy'])
 
-# Distance fetch
+# Distance
 distance = routes.get((source, destination), 100)
 st.write(f"📏 Distance: {distance} km")
 
@@ -127,7 +142,7 @@ if st.button("🚀 Predict Traffic"):
     prediction = model.predict([[src_enc, dest_enc, time, day_enc, weather_enc, distance]])
     result = le_traffic.inverse_transform(prediction)
 
-    # Travel time
+    # Travel time logic
     if result[0] == "Low":
         travel_time = f"{distance//60} hours"
     elif result[0] == "Medium":
@@ -145,4 +160,4 @@ if st.button("🚀 Predict Traffic"):
 
 # Footer
 st.markdown("---")
-st.caption("Smart AI Traffic Prediction 🚀")
+st.caption("AI Traffic Prediction Project 🚀")
