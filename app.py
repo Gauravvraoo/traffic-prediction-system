@@ -3,6 +3,8 @@ import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
 
+st.set_page_config(page_title="Traffic Predictor", layout="centered")
+
 st.title("🚦 AI Traffic Prediction System (Gurugram)")
 
 # ---------------------------
@@ -19,7 +21,7 @@ start_locations = [
 # DESTINATIONS (Near + Far)
 # ---------------------------
 destinations = [
-    "Panchgaon",   # Near 😂
+    "Panchgaon",
     "Manesar",
     "Sohna",
     "Delhi",
@@ -29,10 +31,9 @@ destinations = [
 ]
 
 # ---------------------------
-# DISTANCE (Approx Real)
+# DISTANCE DATA (Approx Real)
 # ---------------------------
 routes = {
-    # Near routes
     ("IFFCO Chowk", "Panchgaon"): 25,
     ("Cyber City", "Panchgaon"): 30,
     ("Huda City Centre", "Panchgaon"): 20,
@@ -48,7 +49,6 @@ routes = {
     ("Huda City Centre", "Sohna"): 25,
     ("MG Road", "Sohna"): 32,
 
-    # Medium routes
     ("IFFCO Chowk", "Delhi"): 30,
     ("Cyber City", "Delhi"): 25,
     ("Huda City Centre", "Delhi"): 35,
@@ -59,7 +59,6 @@ routes = {
     ("Huda City Centre", "Noida"): 55,
     ("MG Road", "Noida"): 48,
 
-    # Far routes
     ("IFFCO Chowk", "Jaipur"): 280,
     ("Cyber City", "Jaipur"): 285,
     ("Huda City Centre", "Jaipur"): 290,
@@ -87,7 +86,7 @@ alt_routes = {
 }
 
 # ---------------------------
-# DATASET
+# DATASET (Training)
 # ---------------------------
 data = pd.DataFrame({
     'Source': ["IFFCO Chowk","Cyber City","Huda City Centre","MG Road"],
@@ -140,7 +139,7 @@ weather = st.selectbox("Weather", ['Clear','Rain','Cloudy'])
 distance = routes.get((source, destination), 50)
 st.write(f"📏 Distance: {distance} km")
 
-# Encode
+# Encode input
 src_enc = le_src.transform([source])[0]
 dest_enc = le_dest.transform([destination])[0]
 day_enc = le_day.transform([day])[0]
@@ -154,18 +153,31 @@ if st.button("🚀 Predict Traffic"):
     prediction = model.predict([[src_enc, dest_enc, time, day_enc, weather_enc, distance]])
     result = le_traffic.inverse_transform(prediction)
 
-    # Travel time
+    # ---------------------------
+    # TIME CALCULATION (HOURS + MINUTES)
+    # ---------------------------
     if result[0] == "Low":
-        travel_time = f"{distance//50} hours"
+        speed = 50
     elif result[0] == "Medium":
-        travel_time = f"{distance//40} hours"
+        speed = 40
     else:
-        travel_time = f"{distance//30} hours"
+        speed = 30
+
+    time_taken = distance / speed
+    hours = int(time_taken)
+    minutes = int((time_taken - hours) * 60)
+
+    if hours == 0:
+        travel_time = f"{minutes} minutes"
+    else:
+        travel_time = f"{hours} hr {minutes} min"
 
     st.success(f"🚗 Traffic Level: {result[0]}")
     st.info(f"⏱️ Estimated Travel Time: {travel_time}")
 
-    # Alternative route
+    # ---------------------------
+    # ALTERNATIVE ROUTE
+    # ---------------------------
     if result[0] in ["Medium", "High"]:
         alt = alt_routes.get((source, destination), "Use alternate road")
         st.warning(f"⚠️ Alternative Route: {alt}")
