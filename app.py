@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder
+import random
 
 st.set_page_config(page_title="Traffic Predictor", layout="centered")
 
@@ -31,7 +32,7 @@ destinations = [
 ]
 
 # ---------------------------
-# DISTANCE DATA (Approx Real)
+# DISTANCE DATA
 # ---------------------------
 routes = {
     ("IFFCO Chowk", "Panchgaon"): 25,
@@ -86,7 +87,7 @@ alt_routes = {
 }
 
 # ---------------------------
-# DATASET (Training)
+# DATASET
 # ---------------------------
 data = pd.DataFrame({
     'Source': ["IFFCO Chowk","Cyber City","Huda City Centre","MG Road"],
@@ -139,7 +140,7 @@ weather = st.selectbox("Weather", ['Clear','Rain','Cloudy'])
 distance = routes.get((source, destination), 50)
 st.write(f"📏 Distance: {distance} km")
 
-# Encode input
+# Encode
 src_enc = le_src.transform([source])[0]
 dest_enc = le_dest.transform([destination])[0]
 day_enc = le_day.transform([day])[0]
@@ -154,7 +155,7 @@ if st.button("🚀 Predict Traffic"):
     result = le_traffic.inverse_transform(prediction)
 
     # ---------------------------
-    # TIME CALCULATION (HOURS + MINUTES)
+    # TIME CALCULATION
     # ---------------------------
     if result[0] == "Low":
         speed = 50
@@ -176,11 +177,14 @@ if st.button("🚀 Predict Traffic"):
     st.info(f"⏱️ Estimated Travel Time: {travel_time}")
 
     # ---------------------------
-    # ALTERNATIVE ROUTE
+    # SMART ALTERNATIVE ROUTE
     # ---------------------------
-    if result[0] in ["Medium", "High"]:
-        alt = alt_routes.get((source, destination), "Use alternate road")
-        st.warning(f"⚠️ Alternative Route: {alt}")
+    if result[0] == "High":
+        if random.choice([True, False]):
+            alt = alt_routes.get((source, destination), "Use alternate road")
+            st.warning(f"⚠️ Suggested Alternative Route: {alt}")
+        else:
+            st.info("✅ No better alternate route available")
 
 # Footer
 st.markdown("---")
