@@ -113,7 +113,7 @@ data = pd.DataFrame({
 })
 
 # ---------------------------
-# ENCODING (FIXED)
+# ENCODING
 # ---------------------------
 le_src = LabelEncoder()
 le_dest = LabelEncoder()
@@ -194,9 +194,9 @@ if st.button("🚀 Predict Traffic"):
     st.info(f"⏱️ Estimated Travel Time: {travel_time}")
 
     # ---------------------------
-    # UPDATED ALTERNATE ROUTE LOGIC
+    # FINAL ALTERNATE ROUTE LOGIC
     # ---------------------------
-    if result[0] == "High" and weather == "Clear":
+    if result[0] in ["Medium", "High"]:
         if random.choice([True, False]):
             alt = alt_routes.get((source, destination), "Use alternate road")
             st.warning(f"⚠️ Suggested Alternative Route: {alt}")
