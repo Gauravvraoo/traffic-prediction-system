@@ -28,8 +28,6 @@ destinations = [
 # TRAVEL MODE
 # ---------------------------
 mode = st.selectbox("🚗 Select Mode of Travel", ["Car", "Bike"])
-
-# Convert to Google Maps mode
 travel_mode = "driving" if mode == "Car" else "two-wheeler"
 
 # ---------------------------
@@ -170,14 +168,39 @@ if st.button("🚀 Predict Traffic"):
     result = le_traffic.inverse_transform(pred)[0]
 
     # ---------------------------
-    # IMPROVED TIME CALCULATION
+    # SMART TIME CALCULATION
     # ---------------------------
     if mode == "Car":
-        speed = 60 if result=="Low" else 40 if result=="Medium" else 25
-    else:  # Bike
-        speed = 50 if result=="Low" else 35 if result=="Medium" else 20
+        base_speed = 55
+    else:
+        base_speed = 45
 
-    time_taken = distance / speed
+    if result == "Low":
+        traffic_factor = 1.0
+    elif result == "Medium":
+        traffic_factor = 0.7
+    else:
+        traffic_factor = 0.5
+
+    if 8 <= time <= 11 or 17 <= time <= 21:
+        peak_factor = 0.7
+    else:
+        peak_factor = 1.0
+
+    if weather == "Rain":
+        weather_factor = 0.8
+    elif weather == "Cloudy":
+        weather_factor = 0.9
+    else:
+        weather_factor = 1.0
+
+    final_speed = base_speed * traffic_factor * peak_factor * weather_factor
+
+    if final_speed < 10:
+        final_speed = 10
+
+    time_taken = distance / final_speed
+
     hours = int(time_taken)
     minutes = int((time_taken - hours) * 60)
 
@@ -187,7 +210,7 @@ if st.button("🚀 Predict Traffic"):
     st.info(f"⏱️ Estimated Travel Time: {travel_time}")
 
     # ---------------------------
-    # GOOGLE MAP MAIN ROUTE
+    # GOOGLE MAP LINK
     # ---------------------------
     map_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
     st.markdown(f"🗺️ [Open Route in Google Maps ({mode})]({map_link})")
