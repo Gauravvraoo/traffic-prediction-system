@@ -75,17 +75,17 @@ routes = {
 # ALTERNATIVE ROUTES
 # ---------------------------
 alt_routes = {
-    ("IFFCO Chowk", "Panchgaon"): "Via NH48 Service Road",
-    ("IFFCO Chowk", "Manesar"): "Via KMP Expressway",
-    ("IFFCO Chowk", "Sohna"): "Via Sohna Road",
-    ("IFFCO Chowk", "Delhi"): "Via MG Road",
-    ("IFFCO Chowk", "Noida"): "Via DND Flyway",
-    ("IFFCO Chowk", "Jaipur"): "Via NH48",
-    ("IFFCO Chowk", "Rishikesh"): "Via Meerut Expressway"
+    ("IFFCO Chowk", "Panchgaon"): "NH48 Service Road",
+    ("IFFCO Chowk", "Manesar"): "KMP Expressway",
+    ("IFFCO Chowk", "Sohna"): "Sohna Road",
+    ("IFFCO Chowk", "Delhi"): "MG Road",
+    ("IFFCO Chowk", "Noida"): "DND Flyway",
+    ("IFFCO Chowk", "Jaipur"): "NH48",
+    ("IFFCO Chowk", "Rishikesh"): "Meerut Expressway"
 }
 
 # ---------------------------
-# DATASET (FIXED)
+# DATASET
 # ---------------------------
 data = pd.DataFrame({
     'Source': [
@@ -194,12 +194,22 @@ if st.button("🚀 Predict Traffic"):
     st.info(f"⏱️ Estimated Travel Time: {travel_time}")
 
     # ---------------------------
-    # FINAL ALTERNATE ROUTE LOGIC
+    # GOOGLE MAP MAIN ROUTE
+    # ---------------------------
+    map_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ', '+')}&destination={destination.replace(' ', '+')}"
+    st.markdown(f"🗺️ [Open Route in Google Maps]({map_link})")
+
+    # ---------------------------
+    # ALTERNATE ROUTE + MAP LINK
     # ---------------------------
     if result[0] in ["Medium", "High"]:
         if random.choice([True, False]):
-            alt = alt_routes.get((source, destination), "Use alternate road")
+            alt = alt_routes.get((source, destination), destination)
+
+            alt_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ', '+')}&destination={alt.replace(' ', '+')}"
+
             st.warning(f"⚠️ Suggested Alternative Route: {alt}")
+            st.markdown(f"🗺️ [View Alternate Route]({alt_link})")
         else:
             st.info("✅ No better alternate route available")
 
