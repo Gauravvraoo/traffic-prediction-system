@@ -15,7 +15,8 @@ start_locations = [
     "IFFCO Chowk",
     "Cyber City",
     "Huda City Centre",
-    "MG Road"
+    "MG Road",
+    "The NorthCap University"
 ]
 
 # DESTINATIONS
@@ -31,45 +32,82 @@ mode = st.selectbox("🚗 Select Mode of Travel", ["Car", "Bike"])
 travel_mode = "driving" if mode == "Car" else "two-wheeler"
 
 # ---------------------------
-# DISTANCE DATA (for model only)
+# DISTANCE DATA
 # ---------------------------
 routes = {
     ("IFFCO Chowk", "Panchgaon"): 25,
     ("Cyber City", "Panchgaon"): 30,
     ("Huda City Centre", "Panchgaon"): 20,
     ("MG Road", "Panchgaon"): 28,
+    ("The NorthCap University", "Panchgaon"): 35,
+
+    ("IFFCO Chowk", "Manesar"): 20,
+    ("Cyber City", "Manesar"): 25,
+    ("Huda City Centre", "Manesar"): 18,
+    ("MG Road", "Manesar"): 22,
+    ("The NorthCap University", "Manesar"): 30,
+
+    ("IFFCO Chowk", "Sohna"): 30,
+    ("Cyber City", "Sohna"): 35,
+    ("Huda City Centre", "Sohna"): 25,
+    ("MG Road", "Sohna"): 32,
+    ("The NorthCap University", "Sohna"): 40,
 
     ("IFFCO Chowk", "Delhi"): 30,
+    ("Cyber City", "Delhi"): 25,
+    ("Huda City Centre", "Delhi"): 35,
+    ("MG Road", "Delhi"): 28,
+    ("The NorthCap University", "Delhi"): 20,
+
     ("IFFCO Chowk", "Noida"): 45,
+    ("Cyber City", "Noida"): 50,
+    ("Huda City Centre", "Noida"): 55,
+    ("MG Road", "Noida"): 48,
+    ("The NorthCap University", "Noida"): 35,
+
     ("IFFCO Chowk", "Jaipur"): 280,
-    ("IFFCO Chowk", "Rishikesh"): 250
+    ("Cyber City", "Jaipur"): 285,
+    ("Huda City Centre", "Jaipur"): 290,
+    ("MG Road", "Jaipur"): 275,
+    ("The NorthCap University", "Jaipur"): 270,
+
+    ("IFFCO Chowk", "Rishikesh"): 250,
+    ("Cyber City", "Rishikesh"): 255,
+    ("Huda City Centre", "Rishikesh"): 260,
+    ("MG Road", "Rishikesh"): 245,
+    ("The NorthCap University", "Rishikesh"): 240
 }
 
 # ---------------------------
-# DATASET (SYNTHETIC)
+# DATASET (UPDATED WITH NCU)
 # ---------------------------
 data = pd.DataFrame({
     'Source': [
         "IFFCO Chowk","Cyber City","Huda City Centre","MG Road",
-        "IFFCO Chowk","Cyber City","Huda City Centre","MG Road"
+        "IFFCO Chowk","Cyber City","Huda City Centre","MG Road",
+        "The NorthCap University","The NorthCap University"
     ],
     'Destination': [
         "Panchgaon","Delhi","Noida","Jaipur",
-        "Rishikesh","Manesar","Sohna","Delhi"
+        "Rishikesh","Manesar","Sohna","Delhi",
+        "Delhi","Manesar"
     ],
-    'Time': [8,14,18,20,10,16,9,22],
+    'Time': [8,14,18,20,10,16,9,22,9,17],
     'Day': [
         "Monday","Wednesday","Friday","Sunday",
-        "Tuesday","Thursday","Saturday","Monday"
+        "Tuesday","Thursday","Saturday","Monday",
+        "Monday","Friday"
     ],
     'Weather': [
         "Clear","Rain","Cloudy","Clear",
-        "Rain","Clear","Cloudy","Rain"
+        "Rain","Clear","Cloudy","Rain",
+        "Clear","Rain"
     ],
-    'Distance': [25,25,55,275,250,20,30,30],
+    'Distance': [25,25,55,275,250,20,30,30,20,30],
     'Traffic': [
         "High","Medium","High","Low",
-        "High","Medium","Low","Medium"
+        "High","Medium","Low","Medium",
+        "Medium","High"
     ]
 })
 
@@ -130,17 +168,13 @@ if st.button("🚀 Predict Traffic"):
 
     st.success(f"🚗 Predicted Traffic Level: {result}")
 
-    # ---------------------------
     # GOOGLE MAP LINK
-    # ---------------------------
     map_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
 
     st.info("⏱️ Exact travel time will be shown in Google Maps below 👇")
     st.markdown(f"🗺️ [Open Route in Google Maps ({mode})]({map_link})")
 
-    # ---------------------------
     # MAP INSIDE APP
-    # ---------------------------
     st.subheader("🗺️ Map View (Gurugram)")
     map_data = pd.DataFrame({
         'lat': [28.4744],
@@ -148,21 +182,15 @@ if st.button("🚀 Predict Traffic"):
     })
     st.map(map_data)
 
-    # ---------------------------
     # GRAPH
-    # ---------------------------
     st.subheader("📊 Traffic vs Speed")
-
     chart_data = pd.DataFrame({
         "Traffic": ["Low", "Medium", "High"],
         "Speed (km/h)": [60, 40, 25]
     })
-
     st.bar_chart(chart_data.set_index("Traffic"))
 
-    # ---------------------------
     # ALTERNATE ROUTE
-    # ---------------------------
     if result in ["Medium", "High"]:
         if random.choice([True, False]):
             st.warning("⚠️ Traffic is moderate/high, try alternate route")
