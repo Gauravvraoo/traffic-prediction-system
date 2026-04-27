@@ -19,7 +19,7 @@ start_locations = [
 ]
 
 # ---------------------------
-# DESTINATIONS (Near + Far)
+# DESTINATIONS
 # ---------------------------
 destinations = [
     "Panchgaon",
@@ -78,29 +78,42 @@ alt_routes = {
     ("IFFCO Chowk", "Panchgaon"): "Via NH48 Service Road",
     ("IFFCO Chowk", "Manesar"): "Via KMP Expressway",
     ("IFFCO Chowk", "Sohna"): "Via Sohna Road",
-
     ("IFFCO Chowk", "Delhi"): "Via MG Road",
     ("IFFCO Chowk", "Noida"): "Via DND Flyway",
-
-    ("IFFCO Chowk", "Jaipur"): "Via NH48 Expressway",
+    ("IFFCO Chowk", "Jaipur"): "Via NH48",
     ("IFFCO Chowk", "Rishikesh"): "Via Meerut Expressway"
 }
 
 # ---------------------------
-# DATASET
+# FIXED DATASET (ALL VALUES INCLUDED)
 # ---------------------------
 data = pd.DataFrame({
-    'Source': ["IFFCO Chowk","Cyber City","Huda City Centre","MG Road"],
-    'Destination': ["Panchgaon","Delhi","Noida","Jaipur"],
-    'Time': [8, 14, 18, 20],
-    'Day': ["Monday","Wednesday","Friday","Sunday"],
-    'Weather': ["Clear","Rain","Cloudy","Clear"],
-    'Distance': [25, 25, 55, 275],
-    'Traffic': ["High","Medium","High","Low"]
+    'Source': [
+        "IFFCO Chowk","Cyber City","Huda City Centre","MG Road",
+        "IFFCO Chowk","Cyber City","Huda City Centre","MG Road"
+    ],
+    'Destination': [
+        "Panchgaon","Delhi","Noida","Jaipur",
+        "Rishikesh","Manesar","Sohna","Delhi"
+    ],
+    'Time': [8,14,18,20,10,16,9,22],
+    'Day': [
+        "Monday","Wednesday","Friday","Sunday",
+        "Tuesday","Thursday","Saturday","Monday"
+    ],
+    'Weather': [
+        "Clear","Rain","Cloudy","Clear",
+        "Rain","Clear","Cloudy","Rain"
+    ],
+    'Distance': [25,25,55,275,250,20,30,30],
+    'Traffic': [
+        "High","Medium","High","Low",
+        "High","Medium","Low","Medium"
+    ]
 })
 
 # ---------------------------
-# ENCODING
+# ENCODING (FIXED)
 # ---------------------------
 le_src = LabelEncoder()
 le_dest = LabelEncoder()
@@ -108,11 +121,19 @@ le_day = LabelEncoder()
 le_weather = LabelEncoder()
 le_traffic = LabelEncoder()
 
-data['Source'] = le_src.fit_transform(data['Source'])
-data['Destination'] = le_dest.fit_transform(data['Destination'])
-data['Day'] = le_day.fit_transform(data['Day'])
-data['Weather'] = le_weather.fit_transform(data['Weather'])
-data['Traffic'] = le_traffic.fit_transform(data['Traffic'])
+# Fit on ALL possible values
+le_src.fit(start_locations)
+le_dest.fit(destinations)
+le_day.fit(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'])
+le_weather.fit(['Clear','Rain','Cloudy'])
+le_traffic.fit(['Low','Medium','High'])
+
+# Transform dataset
+data['Source'] = le_src.transform(data['Source'])
+data['Destination'] = le_dest.transform(data['Destination'])
+data['Day'] = le_day.transform(data['Day'])
+data['Weather'] = le_weather.transform(data['Weather'])
+data['Traffic'] = le_traffic.transform(data['Traffic'])
 
 X = data[['Source','Destination','Time','Day','Weather','Distance']]
 y = data['Traffic']
@@ -140,7 +161,7 @@ weather = st.selectbox("Weather", ['Clear','Rain','Cloudy'])
 distance = routes.get((source, destination), 50)
 st.write(f"📏 Distance: {distance} km")
 
-# Encode
+# Encode input safely
 src_enc = le_src.transform([source])[0]
 dest_enc = le_dest.transform([destination])[0]
 day_enc = le_day.transform([day])[0]
@@ -154,9 +175,7 @@ if st.button("🚀 Predict Traffic"):
     prediction = model.predict([[src_enc, dest_enc, time, day_enc, weather_enc, distance]])
     result = le_traffic.inverse_transform(prediction)
 
-    # ---------------------------
-    # TIME CALCULATION
-    # ---------------------------
+    # Time calculation
     if result[0] == "Low":
         speed = 50
     elif result[0] == "Medium":
@@ -176,9 +195,7 @@ if st.button("🚀 Predict Traffic"):
     st.success(f"🚗 Traffic Level: {result[0]}")
     st.info(f"⏱️ Estimated Travel Time: {travel_time}")
 
-    # ---------------------------
-    # SMART ALTERNATIVE ROUTE
-    # ---------------------------
+    # Smart alternate route
     if result[0] == "High":
         if random.choice([True, False]):
             alt = alt_routes.get((source, destination), "Use alternate road")
