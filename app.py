@@ -85,7 +85,7 @@ alt_routes = {
 }
 
 # ---------------------------
-# FIXED DATASET (ALL VALUES INCLUDED)
+# DATASET (FIXED)
 # ---------------------------
 data = pd.DataFrame({
     'Source': [
@@ -121,14 +121,12 @@ le_day = LabelEncoder()
 le_weather = LabelEncoder()
 le_traffic = LabelEncoder()
 
-# Fit on ALL possible values
 le_src.fit(start_locations)
 le_dest.fit(destinations)
 le_day.fit(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'])
 le_weather.fit(['Clear','Rain','Cloudy'])
 le_traffic.fit(['Low','Medium','High'])
 
-# Transform dataset
 data['Source'] = le_src.transform(data['Source'])
 data['Destination'] = le_dest.transform(data['Destination'])
 data['Day'] = le_day.transform(data['Day'])
@@ -161,7 +159,7 @@ weather = st.selectbox("Weather", ['Clear','Rain','Cloudy'])
 distance = routes.get((source, destination), 50)
 st.write(f"📏 Distance: {distance} km")
 
-# Encode input safely
+# Encode
 src_enc = le_src.transform([source])[0]
 dest_enc = le_dest.transform([destination])[0]
 day_enc = le_day.transform([day])[0]
@@ -195,8 +193,10 @@ if st.button("🚀 Predict Traffic"):
     st.success(f"🚗 Traffic Level: {result[0]}")
     st.info(f"⏱️ Estimated Travel Time: {travel_time}")
 
-    # Smart alternate route
-    if result[0] == "High":
+    # ---------------------------
+    # UPDATED ALTERNATE ROUTE LOGIC
+    # ---------------------------
+    if result[0] == "High" and weather == "Clear":
         if random.choice([True, False]):
             alt = alt_routes.get((source, destination), "Use alternate road")
             st.warning(f"⚠️ Suggested Alternative Route: {alt}")
