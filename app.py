@@ -31,7 +31,7 @@ mode = st.selectbox("🚗 Select Mode of Travel", ["Car", "Bike"])
 travel_mode = "driving" if mode == "Car" else "two-wheeler"
 
 # ---------------------------
-# DISTANCE DATA (ONLY FOR MODEL)
+# DISTANCE DATA (for model only)
 # ---------------------------
 routes = {
     ("IFFCO Chowk", "Panchgaon"): 25,
@@ -131,7 +131,7 @@ if st.button("🚀 Predict Traffic"):
     st.success(f"🚗 Predicted Traffic Level: {result}")
 
     # ---------------------------
-    # GOOGLE MAP MAIN ROUTE
+    # GOOGLE MAP LINK
     # ---------------------------
     map_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
 
@@ -139,15 +139,34 @@ if st.button("🚀 Predict Traffic"):
     st.markdown(f"🗺️ [Open Route in Google Maps ({mode})]({map_link})")
 
     # ---------------------------
+    # MAP INSIDE APP
+    # ---------------------------
+    st.subheader("🗺️ Map View (Gurugram)")
+    map_data = pd.DataFrame({
+        'lat': [28.4744],
+        'lon': [77.0795]
+    })
+    st.map(map_data)
+
+    # ---------------------------
+    # GRAPH
+    # ---------------------------
+    st.subheader("📊 Traffic vs Speed")
+
+    chart_data = pd.DataFrame({
+        "Traffic": ["Low", "Medium", "High"],
+        "Speed (km/h)": [60, 40, 25]
+    })
+
+    st.bar_chart(chart_data.set_index("Traffic"))
+
+    # ---------------------------
     # ALTERNATE ROUTE
     # ---------------------------
     if result in ["Medium", "High"]:
         if random.choice([True, False]):
             st.warning("⚠️ Traffic is moderate/high, try alternate route")
-
-            alt_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
-
-            st.markdown(f"🗺️ [View Alternate Route ({mode})]({alt_link})")
+            st.markdown(f"🗺️ [View Alternate Route ({mode})]({map_link})")
         else:
             st.info("✅ No better alternate route available")
 
