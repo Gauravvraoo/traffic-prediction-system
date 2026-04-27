@@ -30,38 +30,87 @@ destinations = [
 mode = st.selectbox("🚗 Select Mode of Travel", ["Car", "Bike"])
 
 # Convert to Google Maps mode
-if mode == "Car":
-    travel_mode = "driving"
-else:
-    travel_mode = "two-wheeler"
+travel_mode = "driving" if mode == "Car" else "two-wheeler"
 
 # ---------------------------
 # DISTANCE DATA
 # ---------------------------
 routes = {
     ("IFFCO Chowk", "Panchgaon"): 25,
+    ("Cyber City", "Panchgaon"): 30,
+    ("Huda City Centre", "Panchgaon"): 20,
+    ("MG Road", "Panchgaon"): 28,
+
+    ("IFFCO Chowk", "Manesar"): 20,
+    ("Cyber City", "Manesar"): 25,
+    ("Huda City Centre", "Manesar"): 18,
+    ("MG Road", "Manesar"): 22,
+
+    ("IFFCO Chowk", "Sohna"): 30,
+    ("Cyber City", "Sohna"): 35,
+    ("Huda City Centre", "Sohna"): 25,
+    ("MG Road", "Sohna"): 32,
+
     ("IFFCO Chowk", "Delhi"): 30,
+    ("Cyber City", "Delhi"): 25,
+    ("Huda City Centre", "Delhi"): 35,
+    ("MG Road", "Delhi"): 28,
+
     ("IFFCO Chowk", "Noida"): 45,
+    ("Cyber City", "Noida"): 50,
+    ("Huda City Centre", "Noida"): 55,
+    ("MG Road", "Noida"): 48,
+
     ("IFFCO Chowk", "Jaipur"): 280,
-    ("IFFCO Chowk", "Rishikesh"): 250
+    ("Cyber City", "Jaipur"): 285,
+    ("Huda City Centre", "Jaipur"): 290,
+    ("MG Road", "Jaipur"): 275,
+
+    ("IFFCO Chowk", "Rishikesh"): 250,
+    ("Cyber City", "Rishikesh"): 255,
+    ("Huda City Centre", "Rishikesh"): 260,
+    ("MG Road", "Rishikesh"): 245
+}
+
+# ---------------------------
+# ALTERNATIVE ROUTES
+# ---------------------------
+alt_routes = {
+    ("IFFCO Chowk", "Panchgaon"): "NH48 Service Road",
+    ("IFFCO Chowk", "Manesar"): "KMP Expressway",
+    ("IFFCO Chowk", "Sohna"): "Sohna Road",
+    ("IFFCO Chowk", "Delhi"): "MG Road",
+    ("IFFCO Chowk", "Noida"): "DND Flyway",
+    ("IFFCO Chowk", "Jaipur"): "NH48",
+    ("IFFCO Chowk", "Rishikesh"): "Meerut Expressway"
 }
 
 # ---------------------------
 # DATASET
 # ---------------------------
 data = pd.DataFrame({
-    'Source': ["IFFCO Chowk","Cyber City","Huda City Centre","MG Road",
-               "IFFCO Chowk","Cyber City","Huda City Centre","MG Road"],
-    'Destination': ["Panchgaon","Delhi","Noida","Jaipur",
-                    "Rishikesh","Manesar","Sohna","Delhi"],
+    'Source': [
+        "IFFCO Chowk","Cyber City","Huda City Centre","MG Road",
+        "IFFCO Chowk","Cyber City","Huda City Centre","MG Road"
+    ],
+    'Destination': [
+        "Panchgaon","Delhi","Noida","Jaipur",
+        "Rishikesh","Manesar","Sohna","Delhi"
+    ],
     'Time': [8,14,18,20,10,16,9,22],
-    'Day': ["Monday","Wednesday","Friday","Sunday",
-            "Tuesday","Thursday","Saturday","Monday"],
-    'Weather': ["Clear","Rain","Cloudy","Clear",
-                "Rain","Clear","Cloudy","Rain"],
+    'Day': [
+        "Monday","Wednesday","Friday","Sunday",
+        "Tuesday","Thursday","Saturday","Monday"
+    ],
+    'Weather': [
+        "Clear","Rain","Cloudy","Clear",
+        "Rain","Clear","Cloudy","Rain"
+    ],
     'Distance': [25,25,55,275,250,20,30,30],
-    'Traffic': ["High","Medium","High","Low",
-                "High","Medium","Low","Medium"]
+    'Traffic': [
+        "High","Medium","High","Low",
+        "High","Medium","Low","Medium"
+    ]
 })
 
 # ---------------------------
@@ -113,43 +162,50 @@ day_enc = le_day.transform([day])[0]
 weather_enc = le_weather.transform([weather])[0]
 
 # ---------------------------
-# PREDICT
+# PREDICTION
 # ---------------------------
 if st.button("🚀 Predict Traffic"):
 
     pred = model.predict([[src_enc, dest_enc, time, day_enc, weather_enc, distance]])
     result = le_traffic.inverse_transform(pred)[0]
 
-    # Time calculation
-    speed = 50 if result=="Low" else 40 if result=="Medium" else 30
-    t = distance / speed
-    h = int(t)
-    m = int((t-h)*60)
+    # ---------------------------
+    # IMPROVED TIME CALCULATION
+    # ---------------------------
+    if mode == "Car":
+        speed = 60 if result=="Low" else 40 if result=="Medium" else 25
+    else:  # Bike
+        speed = 50 if result=="Low" else 35 if result=="Medium" else 20
 
-    travel = f"{m} min" if h==0 else f"{h} hr {m} min"
+    time_taken = distance / speed
+    hours = int(time_taken)
+    minutes = int((time_taken - hours) * 60)
 
-    st.success(f"🚗 Traffic: {result}")
-    st.info(f"⏱️ Time: {travel}")
+    travel_time = f"{minutes} minutes" if hours == 0 else f"{hours} hr {minutes} min"
+
+    st.success(f"🚗 Traffic Level: {result}")
+    st.info(f"⏱️ Estimated Travel Time: {travel_time}")
 
     # ---------------------------
     # GOOGLE MAP MAIN ROUTE
     # ---------------------------
     map_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
-
     st.markdown(f"🗺️ [Open Route in Google Maps ({mode})]({map_link})")
 
     # ---------------------------
     # ALTERNATE ROUTE
     # ---------------------------
-    if result in ["Medium","High"]:
+    if result in ["Medium", "High"]:
         if random.choice([True, False]):
-            st.warning("⚠️ Try alternate route via highways")
+            alt = alt_routes.get((source, destination), destination)
 
-            alt_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
+            alt_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={alt.replace(' ','+')}&travelmode={travel_mode}"
 
+            st.warning(f"⚠️ Suggested Alternative Route: {alt}")
             st.markdown(f"🗺️ [View Alternate Route ({mode})]({alt_link})")
         else:
-            st.info("✅ No better route available")
+            st.info("✅ No better alternate route available")
 
+# Footer
 st.markdown("---")
 st.caption("Smart AI Traffic Prediction 🚀")
