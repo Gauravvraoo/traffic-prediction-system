@@ -31,7 +31,7 @@ mode = st.selectbox("🚗 Select Mode of Travel", ["Car", "Bike"])
 travel_mode = "driving" if mode == "Car" else "two-wheeler"
 
 # ---------------------------
-# DISTANCE DATA
+# DISTANCE DATA (ONLY FOR MODEL)
 # ---------------------------
 routes = {
     ("IFFCO Chowk", "Panchgaon"): 25,
@@ -39,52 +39,14 @@ routes = {
     ("Huda City Centre", "Panchgaon"): 20,
     ("MG Road", "Panchgaon"): 28,
 
-    ("IFFCO Chowk", "Manesar"): 20,
-    ("Cyber City", "Manesar"): 25,
-    ("Huda City Centre", "Manesar"): 18,
-    ("MG Road", "Manesar"): 22,
-
-    ("IFFCO Chowk", "Sohna"): 30,
-    ("Cyber City", "Sohna"): 35,
-    ("Huda City Centre", "Sohna"): 25,
-    ("MG Road", "Sohna"): 32,
-
     ("IFFCO Chowk", "Delhi"): 30,
-    ("Cyber City", "Delhi"): 25,
-    ("Huda City Centre", "Delhi"): 35,
-    ("MG Road", "Delhi"): 28,
-
     ("IFFCO Chowk", "Noida"): 45,
-    ("Cyber City", "Noida"): 50,
-    ("Huda City Centre", "Noida"): 55,
-    ("MG Road", "Noida"): 48,
-
     ("IFFCO Chowk", "Jaipur"): 280,
-    ("Cyber City", "Jaipur"): 285,
-    ("Huda City Centre", "Jaipur"): 290,
-    ("MG Road", "Jaipur"): 275,
-
-    ("IFFCO Chowk", "Rishikesh"): 250,
-    ("Cyber City", "Rishikesh"): 255,
-    ("Huda City Centre", "Rishikesh"): 260,
-    ("MG Road", "Rishikesh"): 245
+    ("IFFCO Chowk", "Rishikesh"): 250
 }
 
 # ---------------------------
-# ALTERNATIVE ROUTES
-# ---------------------------
-alt_routes = {
-    ("IFFCO Chowk", "Panchgaon"): "NH48 Service Road",
-    ("IFFCO Chowk", "Manesar"): "KMP Expressway",
-    ("IFFCO Chowk", "Sohna"): "Sohna Road",
-    ("IFFCO Chowk", "Delhi"): "MG Road",
-    ("IFFCO Chowk", "Noida"): "DND Flyway",
-    ("IFFCO Chowk", "Jaipur"): "NH48",
-    ("IFFCO Chowk", "Rishikesh"): "Meerut Expressway"
-}
-
-# ---------------------------
-# DATASET
+# DATASET (SYNTHETIC)
 # ---------------------------
 data = pd.DataFrame({
     'Source': [
@@ -151,7 +113,6 @@ day = st.selectbox("Day", ['Monday','Tuesday','Wednesday','Thursday','Friday','S
 weather = st.selectbox("Weather", ['Clear','Rain','Cloudy'])
 
 distance = routes.get((source, destination), 50)
-st.write(f"📏 Distance: {distance} km")
 
 # Encode
 src_enc = le_src.transform([source])[0]
@@ -167,52 +128,14 @@ if st.button("🚀 Predict Traffic"):
     pred = model.predict([[src_enc, dest_enc, time, day_enc, weather_enc, distance]])
     result = le_traffic.inverse_transform(pred)[0]
 
-    # ---------------------------
-    # SMART TIME CALCULATION
-    # ---------------------------
-    if mode == "Car":
-        base_speed = 55
-    else:
-        base_speed = 45
-
-    if result == "Low":
-        traffic_factor = 1.0
-    elif result == "Medium":
-        traffic_factor = 0.7
-    else:
-        traffic_factor = 0.5
-
-    if 8 <= time <= 11 or 17 <= time <= 21:
-        peak_factor = 0.7
-    else:
-        peak_factor = 1.0
-
-    if weather == "Rain":
-        weather_factor = 0.8
-    elif weather == "Cloudy":
-        weather_factor = 0.9
-    else:
-        weather_factor = 1.0
-
-    final_speed = base_speed * traffic_factor * peak_factor * weather_factor
-
-    if final_speed < 10:
-        final_speed = 10
-
-    time_taken = distance / final_speed
-
-    hours = int(time_taken)
-    minutes = int((time_taken - hours) * 60)
-
-    travel_time = f"{minutes} minutes" if hours == 0 else f"{hours} hr {minutes} min"
-
-    st.success(f"🚗 Traffic Level: {result}")
-    st.info(f"⏱️ Estimated Travel Time: {travel_time}")
+    st.success(f"🚗 Predicted Traffic Level: {result}")
 
     # ---------------------------
-    # GOOGLE MAP LINK
+    # GOOGLE MAP MAIN ROUTE
     # ---------------------------
     map_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
+
+    st.info("⏱️ Exact travel time will be shown in Google Maps below 👇")
     st.markdown(f"🗺️ [Open Route in Google Maps ({mode})]({map_link})")
 
     # ---------------------------
@@ -220,11 +143,10 @@ if st.button("🚀 Predict Traffic"):
     # ---------------------------
     if result in ["Medium", "High"]:
         if random.choice([True, False]):
-            alt = alt_routes.get((source, destination), destination)
+            st.warning("⚠️ Traffic is moderate/high, try alternate route")
 
-            alt_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={alt.replace(' ','+')}&travelmode={travel_mode}"
+            alt_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
 
-            st.warning(f"⚠️ Suggested Alternative Route: {alt}")
             st.markdown(f"🗺️ [View Alternate Route ({mode})]({alt_link})")
         else:
             st.info("✅ No better alternate route available")
