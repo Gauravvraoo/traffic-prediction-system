@@ -24,7 +24,20 @@ destinations = [
     "Delhi","Noida","Jaipur","Rishikesh"
 ]
 
-# DISTANCES
+# ---------------------------
+# TRAVEL MODE
+# ---------------------------
+mode = st.selectbox("🚗 Select Mode of Travel", ["Car", "Bike"])
+
+# Convert to Google Maps mode
+if mode == "Car":
+    travel_mode = "driving"
+else:
+    travel_mode = "two-wheeler"
+
+# ---------------------------
+# DISTANCE DATA
+# ---------------------------
 routes = {
     ("IFFCO Chowk", "Panchgaon"): 25,
     ("IFFCO Chowk", "Delhi"): 30,
@@ -87,7 +100,6 @@ source = st.selectbox("Start Location", start_locations)
 destination = st.selectbox("Destination", destinations)
 
 time = st.slider("Time (Hour)", 0, 23, 8)
-
 day = st.selectbox("Day", ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'])
 weather = st.selectbox("Weather", ['Clear','Rain','Cloudy'])
 
@@ -108,7 +120,7 @@ if st.button("🚀 Predict Traffic"):
     pred = model.predict([[src_enc, dest_enc, time, day_enc, weather_enc, distance]])
     result = le_traffic.inverse_transform(pred)[0]
 
-    # Time calc
+    # Time calculation
     speed = 50 if result=="Low" else 40 if result=="Medium" else 30
     t = distance / speed
     h = int(t)
@@ -120,32 +132,11 @@ if st.button("🚀 Predict Traffic"):
     st.info(f"⏱️ Time: {travel}")
 
     # ---------------------------
-    # GOOGLE MAP LINK
+    # GOOGLE MAP MAIN ROUTE
     # ---------------------------
-    map_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}"
-    st.markdown(f"🗺️ [Open in Google Maps]({map_link})")
+    map_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
 
-    # ---------------------------
-    # MAP INSIDE APP
-    # ---------------------------
-    st.subheader("🗺️ Map View")
-    map_data = pd.DataFrame({
-        'lat': [28.4744],   # Gurugram approx
-        'lon': [77.0795]
-    })
-    st.map(map_data)
-
-    # ---------------------------
-    # GRAPH (Traffic Comparison)
-    # ---------------------------
-    st.subheader("📊 Traffic Comparison")
-
-    chart_data = pd.DataFrame({
-        "Traffic Level": ["Low","Medium","High"],
-        "Speed (km/h)": [50,40,30]
-    })
-
-    st.bar_chart(chart_data.set_index("Traffic Level"))
+    st.markdown(f"🗺️ [Open Route in Google Maps ({mode})]({map_link})")
 
     # ---------------------------
     # ALTERNATE ROUTE
@@ -153,6 +144,10 @@ if st.button("🚀 Predict Traffic"):
     if result in ["Medium","High"]:
         if random.choice([True, False]):
             st.warning("⚠️ Try alternate route via highways")
+
+            alt_link = f"https://www.google.com/maps/dir/?api=1&origin={source.replace(' ','+')}&destination={destination.replace(' ','+')}&travelmode={travel_mode}"
+
+            st.markdown(f"🗺️ [View Alternate Route ({mode})]({alt_link})")
         else:
             st.info("✅ No better route available")
 
